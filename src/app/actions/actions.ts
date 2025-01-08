@@ -4,7 +4,7 @@ export async function fetchAccessToken(): Promise<string> {
   const apiKey = process.env.HEYGEN_API_KEY;
 
   if (!apiKey) {
-    throw new Error("API key not configured");
+    throw new Error("Heygen API key not configured");
   }
 
   try {
@@ -23,4 +23,14 @@ export async function fetchAccessToken(): Promise<string> {
     console.error("Error fetching token:", error);
     throw new Error("Failed to fetch token");
   }
+}
+
+export async function fetchOpenAIKey(): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("OpenAI API key not configured");
+  }
+
+  return apiKey;
 }

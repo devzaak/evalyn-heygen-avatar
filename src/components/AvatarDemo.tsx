@@ -1,7 +1,8 @@
 "use client";
 
-import { fetchAccessToken } from "@/app/actions";
-import StreamingAvatar, { AvatarQuality, StreamingEvents } from "@heygen/streaming-avatar";
+import { fetchAccessToken, fetchOpenAIKey } from "@/app/actions/actions";
+import { OpenAIAssistant } from "@/lib/types/OpenAiAssistant";
+import StreamingAvatar, { AvatarQuality, StreamingEvents, TaskType } from "@heygen/streaming-avatar";
 import { useEffect, useRef, useState } from "react";
 
 export default function AvatarDemo() {
@@ -9,6 +10,7 @@ export default function AvatarDemo() {
   const [sessionData, setSessionData] = useState<{ sessionId: string; avatarUrl: string } | null>(null);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const [openaiAssistant, setOpenaiAssistant] = useState<OpenAIAssistant | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -25,9 +27,15 @@ export default function AvatarDemo() {
       const token = await fetchAccessToken();
       const newAvatar = new StreamingAvatar({ token });
 
+      // Initialize OpenAI Assistant
+      const apiKey = await fetchOpenAIKey();
+      const openaiAssistant = new OpenAIAssistant(apiKey);
+      await openaiAssistant.initialize();
+
       const newSessionData = await newAvatar.createStartAvatar({
         quality: AvatarQuality.High,
-        avatarName: "default",
+        avatarName: "Santa_Fireplace_Front_public",
+        language: "English",
       });
 
       console.log("Session data:", newSessionData);
@@ -35,6 +43,7 @@ export default function AvatarDemo() {
       setAvatar(newAvatar);
       setSessionData(newSessionData);
       setIsSessionActive(true);
+      setOpenaiAssistant(openaiAssistant);
 
       newAvatar.on(StreamingEvents.STREAM_READY, handleStreamReady);
       newAvatar.on(StreamingEvents.STREAM_DISCONNECTED, handleStreamDisconnected);
@@ -76,10 +85,18 @@ export default function AvatarDemo() {
   }
 
   async function handleSpeak() {
-    if (avatar && userInput) {
-      await avatar.speak({
-        text: userInput,
-      });
+    if (avatar && openaiAssistant && userInput) {
+      try {
+        const response = await openaiAssistant.getResponse(userInput);
+
+        await avatar.speak({
+          text: response,
+          taskType: TaskType.REPEAT,
+        });
+      } catch (error) {
+        console.error("Failed to get response from OpenAI Assistant:", error);
+        // Here you might want to set an error state and display it to the user
+      }
       setUserInput(""); // Clear input after speaking
     }
   }
