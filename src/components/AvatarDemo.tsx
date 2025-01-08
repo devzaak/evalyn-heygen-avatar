@@ -22,6 +22,11 @@ export default function AvatarDemo() {
     };
   }, [avatar]);
 
+  async function initializeAvatar() {
+    await initializeAvatarSession();
+    await sayHello();
+  }
+
   async function initializeAvatarSession() {
     try {
       const token = await fetchAccessToken();
@@ -47,9 +52,6 @@ export default function AvatarDemo() {
 
       newAvatar.on(StreamingEvents.STREAM_READY, handleStreamReady);
       newAvatar.on(StreamingEvents.STREAM_DISCONNECTED, handleStreamDisconnected);
-
-      // Start the avatar
-      await sayHello();
     } catch (error) {
       console.error("Failed to initialize avatar session:", error);
       // Here you might want to set an error state and display it to the user
@@ -121,7 +123,7 @@ export default function AvatarDemo() {
 
       <section>
         <section role="group">
-          <button onClick={initializeAvatarSession} disabled={isSessionActive}>
+          <button onClick={initializeAvatar} disabled={isSessionActive}>
             Start Session
           </button>
           <button onClick={terminateAvatarSession} disabled={!isSessionActive}>
