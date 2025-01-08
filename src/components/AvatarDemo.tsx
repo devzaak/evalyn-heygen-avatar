@@ -47,9 +47,21 @@ export default function AvatarDemo() {
 
       newAvatar.on(StreamingEvents.STREAM_READY, handleStreamReady);
       newAvatar.on(StreamingEvents.STREAM_DISCONNECTED, handleStreamDisconnected);
+
+      // Start the avatar
+      await sayHello();
     } catch (error) {
       console.error("Failed to initialize avatar session:", error);
       // Here you might want to set an error state and display it to the user
+    }
+  }
+
+  async function sayHello() {
+    if (avatar) {
+      await avatar.speak({
+        text: "Hello, I am your friendly Santa English teacher. How can I help you today?",
+        taskType: TaskType.REPEAT,
+      });
     }
   }
 
